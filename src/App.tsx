@@ -11,6 +11,7 @@ import { ReviewsPage } from './features/reviews/ReviewsPage';
 import { AdvancedAnalytics } from './features/analytics/AdvancedAnalytics';
 import { useActivityStore } from './store/useActivityStore';
 import { fetchUserMetadata } from './services/userInfoService';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 function App() {
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -42,6 +43,7 @@ function App() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+            <OfflineIndicator />
             <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between sticky top-0 z-30">
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
