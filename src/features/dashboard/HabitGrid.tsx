@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHabitStore } from '../../store/habitStore';
 import { getDaysInMonth, formatDate, formatDayName, formatDayNumber, isDateToday, formatMonthYear } from '../../utils/dateUtils';
-import { Check, Plus, Trash2, Flame, Archive } from 'lucide-react';
+import { Check, Plus, Trash2, Flame, Archive, Snowflake } from 'lucide-react';
 import { clsx } from 'clsx';
 import { HabitModal } from './HabitModal';
 import { LogModal } from './LogModal';
 import { NoteModal } from './NoteModal';
+import { VacationModeModal } from '../../components/VacationModeModal';
 import { Habit } from '../../types';
 import { calculateStreak } from '../../utils/streakUtils';
 import { EarnedBadgesWidget } from '../gamification/EarnedBadgesWidget';
@@ -22,6 +23,7 @@ export const HabitGrid: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [logModalState, setLogModalState] = useState<{ isOpen: boolean; habit?: Habit; date?: string }>({ isOpen: false });
     const [noteModalState, setNoteModalState] = useState<{ isOpen: boolean; date?: string }>({ isOpen: false });
+    const [vacationModalState, setVacationModalState] = useState<{ isOpen: boolean; habitId: string | null }>({ isOpen: false, habitId: null });
 
     const days = getDaysInMonth(currentDate);
     const [showArchived, setShowArchived] = useState(false);
@@ -179,6 +181,13 @@ export const HabitGrid: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => setVacationModalState({ isOpen: true, habitId: habit.id })}
+                                                    className={`p-1 ${habit.vacationMode?.enabled ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'}`}
+                                                    title={habit.vacationMode?.enabled ? "Vacation Mode Active" : "Set Vacation Mode"}
+                                                >
+                                                    <Snowflake size={16} />
+                                                </button>
                                                 <button
                                                     onClick={() => updateHabit(habit.id, { archived: !habit.archived })}
                                                     className="text-gray-400 hover:text-blue-500 p-1"
