@@ -16,6 +16,7 @@ export interface Habit {
     interval: number; // Days between repetitions (for 'interval' frequency)
     endDate?: string;
     strength: number; // 0-100
+    category?: string;
 }
 
 export interface HabitLog {
@@ -42,4 +43,30 @@ export interface HabitStore {
     toggleHabit: (habitId: string, date: string) => void;
     logHabitValue: (habitId: string, date: string, value: number) => void;
     setDayNote: (date: string, note: string) => void;
+}
+
+export interface LeaderboardEntry {
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    score: number;
+}
+
+export interface Challenge {
+    id: string;
+    title: string;
+    description: string;
+    habitType: string;
+    startDate: string;
+    endDate: string;
+    participants: string[];
+    leaderboard: LeaderboardEntry[];
+}
+
+export interface Friend {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+    status: 'pending' | 'accepted';
 }

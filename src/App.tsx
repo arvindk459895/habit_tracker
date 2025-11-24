@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HabitGrid } from './features/dashboard/HabitGrid';
-import { AnalysisPanel } from './features/analytics/AnalysisPanel';
 import { DataControls } from './features/settings/DataControls';
-import { LayoutGrid, BarChart2, Moon, Sun, LogOut } from 'lucide-react';
+import { Moon, Sun, LogOut, MessageSquare, Users } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { useAuthStore } from './store/authStore';
 import { LoginPage } from './features/auth/LoginPage';
+import { FeedbackModal } from './features/feedback/FeedbackModal';
+import { SocialModal } from './features/social/SocialModal';
+import { useActivityStore } from './store/useActivityStore';
+import { fetchUserMetadata } from './services/userInfoService';
 
 function App() {
-    const [view, setView] = useState<'grid' | 'analysis'>('grid');
+    const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+    const [isSocialOpen, setIsSocialOpen] = useState(false);
     const { theme, toggleTheme } = useTheme();
     const { user, loading, logout } = useAuthStore();
+    const { logActivity } = useActivityStore();
+
+    useEffect(() => {
+        const initLogging = async () => {
+            const metadata = await fetchUserMetadata();
+            logActivity('SYSTEM', 'APP', 'APP_INIT', { theme }, metadata);
+        };
+        initLogging();
+    }, []);
 
     if (loading) {
         return (
@@ -36,6 +49,14 @@ function App() {
 
                 <div className="flex items-center gap-4">
                     <button
+                        onClick={() => setIsSocialOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors text-sm font-medium"
+                    >
+                        <Users size={18} />
+                        <span className="hidden sm:inline">Community</span>
+                    </button>
+
+                    <button
                         onClick={toggleTheme}
                         className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors"
                         title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
@@ -45,28 +66,13 @@ function App() {
 
                     <DataControls />
 
-                    <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
-                        <button
-                            onClick={() => setView('grid')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${view === 'grid'
-                                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                }`}
-                        >
-                            <LayoutGrid size={18} />
-                            Grid
-                        </button>
-                        <button
-                            onClick={() => setView('analysis')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${view === 'analysis'
-                                ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                }`}
-                        >
-                            <BarChart2 size={18} />
-                            Analysis
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => setIsFeedbackOpen(true)}
+                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors hidden sm:block"
+                        title="Send Feedback"
+                    >
+                        <MessageSquare size={20} />
+                    </button>
 
                     <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-200 dark:border-gray-700">
                         <img
@@ -87,8 +93,18 @@ function App() {
             </nav>
 
             <main>
-                {view === 'grid' ? <HabitGrid /> : <AnalysisPanel />}
+                <HabitGrid />
             </main>
+
+            <FeedbackModal
+                isOpen={isFeedbackOpen}
+                onClose={() => setIsFeedbackOpen(false)}
+            />
+
+            <SocialModal
+                isOpen={isSocialOpen}
+                onClose={() => setIsSocialOpen(false)}
+            />
         </div>
     );
 }

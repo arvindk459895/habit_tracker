@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { auth, db } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { logAnalyticsEvent } from '../utils/analytics';
 
 export interface Task {
     id: string;
@@ -37,6 +38,7 @@ export const useTaskStore = create<TaskStore>()(
                 set((state) => {
                     const newState = { tasks: [...state.tasks, newTask] };
                     saveToCloud(newState);
+                    logAnalyticsEvent('task_created', { task_id: newTask.id });
                     return newState;
                 });
             },
@@ -49,6 +51,12 @@ export const useTaskStore = create<TaskStore>()(
                         ),
                     };
                     saveToCloud(newState);
+
+                    const task = newState.tasks.find(t => t.id === id);
+                    if (task && task.completed) {
+                        logAnalyticsEvent('task_completed', { task_id: id });
+                    }
+
                     return newState;
                 });
             },
@@ -59,6 +67,7 @@ export const useTaskStore = create<TaskStore>()(
                         tasks: state.tasks.filter((t) => t.id !== id),
                     };
                     saveToCloud(newState);
+                    logAnalyticsEvent('task_deleted', { task_id: id });
                     return newState;
                 });
             },
@@ -72,8 +81,21 @@ export const useTaskStore = create<TaskStore>()(
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        set({ tasks: data.tasks || [] });
+                        const cloudData = docSnap.data();
+                        const localState = get();
+
+                        const cloudTasks = (cloudData.tasks || []) as Task[];
+                        const localTasks = localState.tasks;
+
+                        const taskMap = new Map<string, Task>();
+
+                        // Add local tasks first
+                        localTasks.forEach(t => taskMap.set(t.id, t));
+
+                        // Add/Overwrite with cloud tasks
+                        cloudTasks.forEach(t => taskMap.set(t.id, t));
+
+                        set({ tasks: Array.from(taskMap.values()) });
                     } else {
                         const state = get();
                         await setDoc(docRef, { tasks: state.tasks });

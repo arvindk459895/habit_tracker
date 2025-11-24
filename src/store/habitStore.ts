@@ -5,6 +5,7 @@ import { Habit, HabitLog } from '../types';
 import { auth, db } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import { logAnalyticsEvent } from '../utils/analytics';
 
 interface HabitStore {
     habits: Habit[];
@@ -18,6 +19,7 @@ interface HabitStore {
     logHabitValue: (habitId: string, date: string, value: number) => void;
     setDayNote: (date: string, note: string) => void;
     syncWithCloud: () => Promise<void>;
+    isLoading: boolean;
 }
 
 export const useHabitStore = create<HabitStore>()(
@@ -26,6 +28,7 @@ export const useHabitStore = create<HabitStore>()(
             habits: [],
             logs: {},
             dayNotes: {},
+            isLoading: true,
 
             addHabit: (habitData) => {
                 const newHabit: Habit = {
@@ -41,6 +44,7 @@ export const useHabitStore = create<HabitStore>()(
                 set((state) => {
                     const newState = { habits: [...state.habits, newHabit] };
                     saveToCloud(newState);
+                    logAnalyticsEvent('habit_created', { habit_id: newHabit.id, type: newHabit.type });
                     return newState;
                 });
             },
@@ -51,6 +55,9 @@ export const useHabitStore = create<HabitStore>()(
                         habits: state.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)),
                     };
                     saveToCloud(newState);
+                    if (updates.archived !== undefined) {
+                        logAnalyticsEvent(updates.archived ? 'habit_archived' : 'habit_unarchived', { habit_id: id });
+                    }
                     return newState;
                 });
             },
@@ -61,6 +68,7 @@ export const useHabitStore = create<HabitStore>()(
                         habits: state.habits.filter((h) => h.id !== id),
                     };
                     saveToCloud(newState);
+                    logAnalyticsEvent('habit_deleted', { habit_id: id });
                     return newState;
                 });
             },
@@ -100,6 +108,11 @@ export const useHabitStore = create<HabitStore>()(
 
                     const newState = { logs: newLogs, habits: newHabits };
                     saveToCloud(newState);
+
+                    if (!existingLog || !existingLog.completed) {
+                        logAnalyticsEvent('habit_completed', { habit_id: habitId, date });
+                    }
+
                     return newState;
                 });
             },
@@ -120,6 +133,7 @@ export const useHabitStore = create<HabitStore>()(
                     // Skipping doesn't change strength
                     const newState = { logs: newLogs };
                     saveToCloud(newState);
+                    logAnalyticsEvent('habit_skipped', { habit_id: habitId, date });
                     return newState;
                 });
             },
@@ -154,32 +168,64 @@ export const useHabitStore = create<HabitStore>()(
             },
 
             syncWithCloud: async () => {
+                set({ isLoading: true });
                 const user = auth.currentUser;
-                if (!user) return;
+                if (!user) {
+                    set({ isLoading: false });
+                    return;
+                }
 
                 try {
                     const docRef = doc(db, 'users', user.uid);
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        // Merge strategy: Cloud wins for simplicity in this MVP
+                        const cloudData = docSnap.data();
+                        const localState = get();
+
+                        // Merge Habits
+                        const cloudHabits = (cloudData.habits || []) as Habit[];
+                        const localHabits = localState.habits;
+
+                        // Create a map of habits by ID
+                        const habitMap = new Map<string, Habit>();
+
+                        // Add local habits first
+                        localHabits.forEach(h => habitMap.set(h.id, h));
+
+                        // Add/Overwrite with cloud habits (Cloud is source of truth for existing items)
+                        // BUT if we want to preserve "newly created local habits that failed to sync", 
+                        // we should only overwrite if the cloud version is "newer" or if we accept cloud as truth.
+                        // Given the "deletion" bug, it's likely cloud is empty/stale. 
+                        // Let's use a Union: Keep everything. If ID exists in both, use Cloud (assuming it might have updates from other devices),
+                        // UNLESS Cloud is missing it, then keep Local.
+                        cloudHabits.forEach(h => habitMap.set(h.id, h));
+
+                        // Merge Logs
+                        const mergedLogs = { ...localState.logs, ...(cloudData.logs || {}) };
+
+                        // Merge DayNotes
+                        const mergedDayNotes = { ...localState.dayNotes, ...(cloudData.dayNotes || {}) };
+
                         set({
-                            habits: data.habits || [],
-                            logs: data.logs || {},
-                            dayNotes: data.dayNotes || {},
+                            habits: Array.from(habitMap.values()),
+                            logs: mergedLogs,
+                            dayNotes: mergedDayNotes,
+                            isLoading: false,
                         });
                     } else {
-                        // If no cloud data, save local data to cloud
+                        // Cloud is empty, push local state
                         const state = get();
                         await setDoc(docRef, {
                             habits: state.habits,
                             logs: state.logs,
                             dayNotes: state.dayNotes,
                         });
+                        set({ isLoading: false });
                     }
                 } catch (error) {
                     console.error("Error syncing with cloud:", error);
+                    set({ isLoading: false });
                 }
             }
         }),
