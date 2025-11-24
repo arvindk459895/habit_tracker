@@ -1,4 +1,4 @@
-import { Habit, HabitType, HabitFrequency } from '../types';
+import { HabitType, HabitFrequency } from '../types';
 
 export type TemplateCategory = 'health' | 'productivity' | 'mindfulness' | 'social' | 'chores' | 'learning';
 

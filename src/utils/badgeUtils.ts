@@ -10,14 +10,7 @@ export interface Badge {
     condition: (habits: Habit[], logs: Record<string, HabitLog>) => boolean;
 }
 
-// Helper function to check if a habit was completed in a given time range
-const wasCompletedInTimeRange = (logs: Record<string, HabitLog>, startHour: number, endHour: number): number => {
-    return Object.values(logs).filter(log => {
-        if (!log.completed || !log.completedAt) return false;
-        const hour = new Date(log.completedAt).getHours();
-        return hour >= startHour && hour < endHour;
-    }).length;
-};
+
 
 export const BADGES: Badge[] = [
     // Starter Badges
@@ -168,7 +161,7 @@ export const BADGES: Badge[] = [
                 const streak = calculateStreak(logs, habit.id);
                 if (streak >= 3) {
                     // Check if there was a 7+ day break before this streak
-                    const today = new Date().toISOString().split('T')[0];
+
                     const streakStart = new Date();
                     streakStart.setDate(streakStart.getDate() - streak);
                     const beforeStreakDate = new Date(streakStart);

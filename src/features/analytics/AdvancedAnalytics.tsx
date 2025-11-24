@@ -50,13 +50,7 @@ export const AdvancedAnalytics: React.FC = () => {
         };
     }).sort((a, b) => b.value - a.value).slice(0, 5);
 
-    // Time-of-day analysis (if we had time data)
-    const timeData = [
-        { time: 'Morning', count: 45 },
-        { time: 'Afternoon', count: 30 },
-        { time: 'Evening', count: 60 },
-        { time: 'Night', count: 20 }
-    ];
+
 
     // Weekly comparison
     const weeklyData = [];
@@ -94,8 +88,8 @@ export const AdvancedAnalytics: React.FC = () => {
                         key={days}
                         onClick={() => setDateRange(days)}
                         className={`px-4 py-2 rounded-lg text-sm transition-colors ${dateRange === days
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                     >
                         {days} Days

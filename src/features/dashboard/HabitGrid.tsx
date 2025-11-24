@@ -24,7 +24,6 @@ export const HabitGrid: React.FC = () => {
     const [currentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [logModalState, setLogModalState] = useState<{ isOpen: boolean; habit?: Habit; date?: string }>({ isOpen: false });
-    const [logModalState, setLogModalState] = useState<{ isOpen: boolean; habit?: Habit; date?: string }>({ isOpen: false });
     const [noteModalState, setNoteModalState] = useState<{ isOpen: boolean; date?: string }>({ isOpen: false });
     const [vacationModalState, setVacationModalState] = useState<{ isOpen: boolean; habitId: string | null }>({ isOpen: false, habitId: null });
     const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
@@ -312,6 +311,29 @@ export const HabitGrid: React.FC = () => {
                     initialNote={dayNotes[noteModalState.date]}
                 />
             )}
+
+            <VacationModeModal
+                isOpen={vacationModalState.isOpen}
+                onClose={() => setVacationModalState({ isOpen: false, habitId: null })}
+                currentVacation={vacationModalState.habitId ? habits.find(h => h.id === vacationModalState.habitId)?.vacationMode : undefined}
+                onSave={(vacation) => {
+                    if (vacationModalState.habitId) {
+                        if (vacation) {
+                            // Generate frozen dates array from vacation period
+                            const frozenDates: string[] = [];
+                            const start = new Date(vacation.startDate);
+                            const end = new Date(vacation.endDate);
+                            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                                frozenDates.push(d.toISOString().split('T')[0]);
+                            }
+                            updateHabit(vacationModalState.habitId, { vacationMode: vacation, frozenDates });
+                        } else {
+                            // Remove vacation mode
+                            updateHabit(vacationModalState.habitId, { vacationMode: undefined, frozenDates: undefined });
+                        }
+                    }
+                }}
+            />
         </div>
     );
 };

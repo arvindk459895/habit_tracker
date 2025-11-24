@@ -12,7 +12,7 @@ export const aiService = {
     },
 
     // 1. AI Habit Coach & 2. Intelligent Insights
-    getCoachingInsights: async (habits: Habit[], logs: Record<string, HabitLog>, period: 'week' | 'month' = 'week') => {
+    getCoachingInsights: async (habits: Habit[], logs: Record<string, HabitLog>) => {
         if (!aiService.isConfigured()) return null;
 
         try {

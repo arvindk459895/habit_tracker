@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HabitTemplate, TemplateCategory, habitTemplates, templateCategories, getAllCategories, getTemplatesByCategory } from '../data/habitTemplates';
+import { HabitTemplate, TemplateCategory, templateCategories, getAllCategories, getTemplatesByCategory } from '../data/habitTemplates';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface TemplateSelectorProps {
     onClose?: () => void;
 }
 
-export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate, onClose }) => {
+export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemplate }) => {
     const [activeCategory, setActiveCategory] = useState<TemplateCategory>('health');
 
     const categories = getAllCategories();
@@ -34,8 +34,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({ onSelectTemp
                             key={category}
                             onClick={() => setActiveCategory(category)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeCategory === category
-                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                                 }`}
                             style={activeCategory === category ? {
                                 backgroundColor: `${categoryInfo.color}20`,

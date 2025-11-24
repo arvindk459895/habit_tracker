@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, X, Loader } from 'lucide-react';
 import { aiService } from '../../services/aiService';
-import { Habit } from '../../types';
-import { motion, AnimatePresence } from 'framer-motion';
+
+import { motion } from 'framer-motion';
 
 interface Props {
     isOpen: boolean;

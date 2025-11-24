@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { iconCategories, categoryIcons, categoryNames, IconCategory } from '../utils/iconLibrary';
 import { Search, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface IconPickerProps {
     selectedIcon: string;
@@ -73,8 +73,8 @@ export const IconPicker: React.FC<IconPickerProps> = ({ selectedIcon, onSelect, 
                             key={category}
                             onClick={() => setActiveCategory(category)}
                             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${activeCategory === category
-                                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                                 }`}
                         >
                             <span>{categoryIcons[category]}</span>
@@ -96,8 +96,8 @@ export const IconPicker: React.FC<IconPickerProps> = ({ selectedIcon, onSelect, 
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleSelect(icon)}
                             className={`aspect-square flex items-center justify-center text-2xl rounded-lg transition-colors ${selectedIcon === icon
-                                    ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500'
-                                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                                ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500'
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                                 }`}
                         >
                             {icon}

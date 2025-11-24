@@ -89,14 +89,74 @@ function App() {
                         <button
                             onClick={logout}
                             className="p-2 rounded-lg hover:bg-red-50 text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
-                        />
-
-                        <SocialModal
-                            isOpen={isSocialOpen}
-                            onClose={() => setIsSocialOpen(false)}
-                        />
+                            title="Sign Out"
+                        >
+                            <LogOut size={20} />
+                        </button>
                     </div>
-                    );
+                </div>
+            </nav>
+
+            {/* Navigation Tabs */}
+            <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex gap-8">
+                        <button
+                            onClick={() => setCurrentPage('dashboard')}
+                            className={`py-4 px-2 border-b-2 transition-colors ${currentPage === 'dashboard'
+                                    ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-medium'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Dashboard
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage('reviews')}
+                            className={`py-4 px-2 border-b-2 transition-colors ${currentPage === 'reviews'
+                                    ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-medium'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Reviews
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage('analytics')}
+                            className={`py-4 px-2 border-b-2 transition-colors ${currentPage === 'analytics'
+                                    ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-medium'
+                                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Analytics
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Page Content */}
+            <main>
+                {currentPage === 'dashboard' && <HabitGrid />}
+                {currentPage === 'reviews' && <ReviewsPage />}
+                {currentPage === 'analytics' && (
+                    <div className="p-6">
+                        <div className="max-w-6xl mx-auto">
+                            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">📈 Advanced Analytics</h1>
+                            <AdvancedAnalytics />
+                        </div>
+                    </div>
+                )}
+            </main>
+
+            <FeedbackModal
+                isOpen={isFeedbackOpen}
+                onClose={() => setIsFeedbackOpen(false)}
+            />
+
+            <SocialModal
+                isOpen={isSocialOpen}
+                onClose={() => setIsSocialOpen(false)}
+            />
+        </div>
+    );
 }
 
-                    export default App;
+export default App;

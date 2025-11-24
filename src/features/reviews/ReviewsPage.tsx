@@ -119,7 +119,7 @@ export const ReviewsPage: React.FC = () => {
             period: period === 'week' ? 'Weekly' : 'Monthly',
             dateRange: `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`,
             stats,
-            habitPerformance: Object.entries(habitPerformance).map(([id, perf]) => ({
+            habitPerformance: Object.entries(habitPerformance).map(([_, perf]) => ({
                 habit: perf.name,
                 completed: perf.completed,
                 total: perf.total,
@@ -152,8 +152,8 @@ export const ReviewsPage: React.FC = () => {
                             <button
                                 onClick={() => setPeriod('week')}
                                 className={`px-4 py-2 rounded-lg transition-colors ${period === 'week'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                                     }`}
                             >
                                 Weekly
@@ -161,8 +161,8 @@ export const ReviewsPage: React.FC = () => {
                             <button
                                 onClick={() => setPeriod('month')}
                                 className={`px-4 py-2 rounded-lg transition-colors ${period === 'month'
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                                     }`}
                             >
                                 Monthly
