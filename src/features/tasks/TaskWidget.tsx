@@ -1,17 +1,28 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useTaskStore } from '../../store/taskStore';
 import { Plus, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
+import { useActivityStore } from '../../store/useActivityStore';
 
 export const TaskWidget: React.FC = () => {
     const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
+    const { logActivity } = useActivityStore();
     const [newTask, setNewTask] = useState('');
     const [showHistory, setShowHistory] = useState(false);
     const today = new Date().toISOString().split('T')[0];
 
     const todaysTasks = tasks.filter(t => t.date === today);
     const previousTasks = tasks.filter(t => t.date < today);
+
+    // Log widget view on mount
+    useEffect(() => {
+        logActivity('VIEW', 'TASK', 'VIEW_WIDGET', {
+            todayTaskCount: todaysTasks.length,
+            totalTaskCount: tasks.length,
+            previousTaskCount: previousTasks.length
+        });
+    }, []);
 
     // Group previous tasks by date
     const tasksByDate = useMemo(() => {
@@ -31,8 +42,43 @@ export const TaskWidget: React.FC = () => {
         e.preventDefault();
         if (newTask.trim()) {
             addTask(newTask, today);
+            logActivity('ACTION', 'TASK', 'CREATE_TASK', {
+                taskText: newTask,
+                date: today,
+                existingTaskCount: todaysTasks.length
+            });
             setNewTask('');
         }
+    };
+
+    const handleToggleHistory = () => {
+        const newState = !showHistory;
+        setShowHistory(newState);
+        logActivity('ACTION', 'TASK', 'TOGGLE_HISTORY', {
+            expanded: newState,
+            previousTaskCount: previousTasks.length,
+            dateCount: tasksByDate.length
+        });
+    };
+
+    const handleToggleTask = (taskId: string, date: string) => {
+        toggleTask(taskId);
+        const task = tasks.find(t => t.id === taskId);
+        logActivity('ACTION', 'TASK', 'TOGGLE_TASK', {
+            taskId,
+            date,
+            completed: !task?.completed,
+            isHistorical: date < today
+        });
+    };
+
+    const handleDeleteTask = (taskId: string, date: string) => {
+        deleteTask(taskId);
+        logActivity('ACTION', 'TASK', 'DELETE_TASK', {
+            taskId,
+            date,
+            isHistorical: date < today
+        });
     };
 
     const formatDateLabel = (dateStr: string) => {
@@ -83,7 +129,7 @@ export const TaskWidget: React.FC = () => {
                                     className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
                                 >
                                     <button
-                                        onClick={() => toggleTask(task.id)}
+                                        onClick={() => handleToggleTask(task.id, task.date)}
                                         className={`text-gray-400 hover:text-blue-500 transition-colors ${task.completed ? 'text-blue-500' : ''}`}
                                     >
                                         {task.completed ? <CheckCircle size={18} /> : <Circle size={18} />}
@@ -92,7 +138,7 @@ export const TaskWidget: React.FC = () => {
                                         {task.text}
                                     </span>
                                     <button
-                                        onClick={() => deleteTask(task.id)}
+                                        onClick={() => handleDeleteTask(task.id, task.date)}
                                         className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
                                         <Trash2 size={16} />
@@ -112,7 +158,7 @@ export const TaskWidget: React.FC = () => {
                 {previousTasks.length > 0 && (
                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                         <button
-                            onClick={() => setShowHistory(!showHistory)}
+                            onClick={handleToggleHistory}
                             className="w-full flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         >
                             <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
@@ -145,7 +191,7 @@ export const TaskWidget: React.FC = () => {
                                                             className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-700/20 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700/40 transition-colors"
                                                         >
                                                             <button
-                                                                onClick={() => toggleTask(task.id)}
+                                                                onClick={() => handleToggleTask(task.id, task.date)}
                                                                 className={`text-gray-400 hover:text-blue-500 transition-colors ${task.completed ? 'text-blue-500' : ''}`}
                                                             >
                                                                 {task.completed ? <CheckCircle size={16} /> : <Circle size={16} />}
@@ -154,7 +200,7 @@ export const TaskWidget: React.FC = () => {
                                                                 {task.text}
                                                             </span>
                                                             <button
-                                                                onClick={() => deleteTask(task.id)}
+                                                                onClick={() => handleDeleteTask(task.id, task.date)}
                                                                 className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                                             >
                                                                 <Trash2 size={14} />

@@ -5,6 +5,7 @@ import { auth, db } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { logAnalyticsEvent } from '../utils/analytics';
+import { migrateStore, MigrationConfig } from '../utils/storeMigration';
 
 export interface Task {
     id: string;
@@ -15,6 +16,7 @@ export interface Task {
 }
 
 interface TaskStore {
+    version: number;
     tasks: Task[];
     addTask: (text: string, date: string) => void;
     toggleTask: (id: string) => void;
@@ -22,9 +24,28 @@ interface TaskStore {
     syncWithCloud: () => Promise<void>;
 }
 
+// Migration configuration
+const CURRENT_VERSION = 1;
+const taskStoreMigrations: MigrationConfig<TaskStore> = {
+    storeName: 'task-storage',
+    currentVersion: CURRENT_VERSION,
+    migrations: [
+        {
+            version: 1,
+            description: 'Add version field to task store',
+            migrate: (data: any) => ({
+                ...data,
+                version: 1,
+                tasks: data.tasks || []
+            })
+        }
+    ]
+};
+
 export const useTaskStore = create<TaskStore>()(
     persist(
         (set, get) => ({
+            version: CURRENT_VERSION,
             tasks: [],
 
             addTask: (text, date) => {
@@ -107,6 +128,10 @@ export const useTaskStore = create<TaskStore>()(
         }),
         {
             name: 'task-storage',
+            version: CURRENT_VERSION,
+            migrate: (persistedState: any) => {
+                return migrateStore(taskStoreMigrations, persistedState) || persistedState;
+            }
         }
     )
 );

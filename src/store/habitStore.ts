@@ -6,8 +6,10 @@ import { auth, db } from '../lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { logAnalyticsEvent } from '../utils/analytics';
+import { migrateStore, MigrationConfig } from '../utils/storeMigration';
 
 interface HabitStore {
+    version: number;
     habits: Habit[];
     logs: Record<string, HabitLog>;
     dayNotes: Record<string, string>;
@@ -22,9 +24,31 @@ interface HabitStore {
     isLoading: boolean;
 }
 
+// Migration configuration
+const CURRENT_VERSION = 1;
+const habitStoreMigrations: MigrationConfig<HabitStore> = {
+    storeName: 'habit-storage',
+    currentVersion: CURRENT_VERSION,
+    migrations: [
+        {
+            version: 1,
+            description: 'Add version field to habit store',
+            migrate: (data: any) => ({
+                ...data,
+                version: 1,
+                habits: data.habits || [],
+                logs: data.logs || {},
+                dayNotes: data.dayNotes || {},
+                isLoading: false
+            })
+        }
+    ]
+};
+
 export const useHabitStore = create<HabitStore>()(
     persist(
         (set, get) => ({
+            version: CURRENT_VERSION,
             habits: [],
             logs: {},
             dayNotes: {},
@@ -231,6 +255,10 @@ export const useHabitStore = create<HabitStore>()(
         }),
         {
             name: 'habit-storage',
+            version: CURRENT_VERSION,
+            migrate: (persistedState: any) => {
+                return migrateStore(habitStoreMigrations, persistedState) || persistedState;
+            }
         }
     )
 );
