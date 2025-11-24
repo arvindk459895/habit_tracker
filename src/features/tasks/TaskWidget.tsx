@@ -1,16 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTaskStore } from '../../store/taskStore';
-import { Plus, Trash2, CheckCircle, Circle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Circle, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 
 export const TaskWidget: React.FC = () => {
     const { tasks, addTask, toggleTask, deleteTask } = useTaskStore();
     const [newTask, setNewTask] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
     const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
     const todaysTasks = tasks.filter(t => t.date === today);
-    const yesterdaysTasks = tasks.filter(t => t.date === yesterday && !t.completed);
+    const previousTasks = tasks.filter(t => t.date < today);
+
+    // Group previous tasks by date
+    const tasksByDate = useMemo(() => {
+        const grouped = previousTasks.reduce((acc, task) => {
+            if (!acc[task.date]) {
+                acc[task.date] = [];
+            }
+            acc[task.date].push(task);
+            return acc;
+        }, {} as Record<string, typeof tasks>);
+
+        // Sort dates in reverse chronological order
+        return Object.entries(grouped).sort((a, b) => b[0].localeCompare(a[0]));
+    }, [previousTasks]);
 
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,6 +33,16 @@ export const TaskWidget: React.FC = () => {
             addTask(newTask, today);
             setNewTask('');
         }
+    };
+
+    const formatDateLabel = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        if (dateStr === yesterday) {
+            return 'Yesterday';
+        }
+        return format(date, 'MMMM d, yyyy');
     };
 
     return (
@@ -42,7 +67,7 @@ export const TaskWidget: React.FC = () => {
                 </button>
             </form>
 
-            <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+            <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
                 {/* Today's Tasks */}
                 <div>
                     <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">Today</h3>
@@ -83,40 +108,66 @@ export const TaskWidget: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Yesterday's Incomplete Tasks */}
-                {yesterdaysTasks.length > 0 && (
+                {/* Previous Days Toggle Button */}
+                {previousTasks.length > 0 && (
                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                        <h3 className="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase mb-2">Yesterday (Incomplete)</h3>
-                        <div className="space-y-2">
-                            <AnimatePresence mode='popLayout'>
-                                {yesterdaysTasks.map(task => (
-                                    <motion.div
-                                        key={task.id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 10 }}
-                                        layout
-                                        className="flex items-center gap-3 p-2 bg-orange-50 dark:bg-orange-900/10 rounded-lg group hover:bg-orange-100 dark:hover:bg-orange-900/20 transition-colors border border-orange-100 dark:border-orange-900/30"
-                                    >
-                                        <button
-                                            onClick={() => toggleTask(task.id)}
-                                            className="text-orange-400 hover:text-orange-600 transition-colors"
-                                        >
-                                            <Circle size={18} />
-                                        </button>
-                                        <span className="flex-1 text-sm text-gray-700 dark:text-gray-200">
-                                            {task.text}
-                                        </span>
-                                        <button
-                                            onClick={() => deleteTask(task.id)}
-                                            className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-                        </div>
+                        <button
+                            onClick={() => setShowHistory(!showHistory)}
+                            className="w-full flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
+                                Previous Days ({previousTasks.length} tasks)
+                            </span>
+                            {showHistory ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        </button>
+
+                        {/* Previous Days Tasks */}
+                        <AnimatePresence>
+                            {showHistory && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="space-y-3 mt-3">
+                                        {tasksByDate.map(([date, dateTasks]) => (
+                                            <div key={date}>
+                                                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                                                    {formatDateLabel(date)}
+                                                </h4>
+                                                <div className="space-y-1.5">
+                                                    {dateTasks.map(task => (
+                                                        <motion.div
+                                                            key={task.id}
+                                                            layout
+                                                            className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-700/20 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700/40 transition-colors"
+                                                        >
+                                                            <button
+                                                                onClick={() => toggleTask(task.id)}
+                                                                className={`text-gray-400 hover:text-blue-500 transition-colors ${task.completed ? 'text-blue-500' : ''}`}
+                                                            >
+                                                                {task.completed ? <CheckCircle size={16} /> : <Circle size={16} />}
+                                                            </button>
+                                                            <span className={`flex-1 text-xs text-gray-700 dark:text-gray-200 ${task.completed ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>
+                                                                {task.text}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => deleteTask(task.id)}
+                                                                className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>
