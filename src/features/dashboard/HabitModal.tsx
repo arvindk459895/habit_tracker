@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Habit, HabitType, HabitFrequency } from '../../types';
+import { IconPicker } from '../../components/IconPicker';
+import { TemplateSelector } from '../../components/TemplateSelector';
+import { HabitTemplate } from '../../data/habitTemplates';
 
 interface HabitModalProps {
     isOpen: boolean;
@@ -20,6 +23,7 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
     const [daysOfWeek, setDaysOfWeek] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
     const [interval, setInterval] = useState(1);
     const [endDate, setEndDate] = useState('');
+    const [activeTab, setActiveTab] = useState<'custom' | 'template'>('custom');
 
     useEffect(() => {
         if (initialData) {
@@ -49,6 +53,19 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
         setDaysOfWeek([0, 1, 2, 3, 4, 5, 6]);
         setInterval(1);
         setEndDate('');
+        setActiveTab('custom');
+    };
+
+    const handleTemplateSelect = (template: HabitTemplate) => {
+        setName(template.name);
+        setEmoji(template.emoji);
+        setColor(template.color);
+        setType(template.type);
+        setFrequency(template.frequency);
+        setDaysOfWeek(template.daysOfWeek || [0, 1, 2, 3, 4, 5, 6]);
+        if (template.goal) setGoal(template.goal);
+        if (template.unit) setUnit(template.unit);
+        setActiveTab('custom'); // Switch to custom tab to show selected template
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -83,174 +100,202 @@ export const HabitModal: React.FC<HabitModalProps> = ({ isOpen, onClose, onSave,
                     </button>
                 </div>
 
+                {/* Tabs */}
+                {!initialData && (
+                    <div className="px-6 flex gap-2 border-b border-gray-200 dark:border-gray-700">
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('custom')}
+                            className={`px-4 py-2 font-medium text-sm transition-colors relative ${activeTab === 'custom'
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Custom
+                            {activeTab === 'custom' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab('template')}
+                            className={`px-4 py-2 font-medium text-sm transition-colors relative ${activeTab === 'template'
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            Templates
+                            {activeTab === 'template' && (
+                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
+                            )}
+                        </button>
+                    </div>
+                )}
+
                 <div className="p-6 overflow-y-auto custom-scrollbar">
-                    <form id="habit-form" onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Habit Name</label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                placeholder="e.g., Read Books"
-                                required
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
-                                <div className="grid grid-cols-8 gap-2 p-3 border border-gray-200 rounded-lg bg-gray-50 max-h-40 overflow-y-auto custom-scrollbar">
-                                    {['📝', '💪', '💧', '🏃', '📚', '🧘', '💰', '🥗', '💤', '🎸', '🎨', '💻', '🧹', '💊', '🌱', '🚶', '🚴', '🏋️', '🍎', '🍳', '🦷', '🚿', '📵', '🚭', '🍺', '🍷', '🎮', '📱', '⏰', '📅', '✉️', '📞', '🛒', '🎁', '🐶', '🐱', '🪴', '☀️', '🌙', '⭐'].map((e) => (
-                                        <button
-                                            key={e}
-                                            type="button"
-                                            onClick={() => setEmoji(e)}
-                                            className={`w-8 h-8 flex items-center justify-center rounded-md text-xl transition-all ${emoji === e ? 'bg-white shadow-sm scale-110 ring-2 ring-blue-500' : 'hover:bg-gray-200 hover:scale-110'}`}
-                                        >
-                                            {e}
-                                        </button>
-                                    ))}
-                                </div>
+                    {activeTab === 'template' ? (
+                        <TemplateSelector onSelectTemplate={handleTemplateSelect} />
+                    ) : (
+                        <form id="habit-form" onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Habit Name</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                    placeholder="e.g., Read Books"
+                                    required
+                                />
                             </div>
-                            <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
-                                <div className="flex gap-2 overflow-x-auto p-1">
-                                    {['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b'].map((c) => (
-                                        <button
-                                            key={c}
-                                            type="button"
-                                            onClick={() => setColor(c)}
-                                            className={`w-8 h-8 rounded-full transition-all ${color === c ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-110'}`}
-                                            style={{ backgroundColor: c }}
-                                        />
-                                    ))}
-                                    <input
-                                        type="color"
-                                        value={color}
-                                        onChange={(e) => setColor(e.target.value)}
-                                        className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border-0 p-0"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Type</label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {(['checkbox', 'time', 'amount'] as HabitType[]).map((t) => (
-                                    <button
-                                        key={t}
-                                        type="button"
-                                        onClick={() => setType(t)}
-                                        className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${type === t
-                                            ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
-                                            : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
-                                            }`}
-                                    >
-                                        {t}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {type !== 'checkbox' && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Daily Goal</label>
-                                    <input
-                                        type="number"
-                                        value={goal || ''}
-                                        onChange={(e) => setGoal(Number(e.target.value))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="e.g., 30"
-                                        required
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+                                    <IconPicker
+                                        selectedIcon={emoji}
+                                        onSelect={setEmoji}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                                    <input
-                                        type="text"
-                                        value={unit}
-                                        onChange={(e) => setUnit(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder={type === 'time' ? 'mins' : 'pages'}
-                                        required
-                                    />
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
+                                    <div className="flex gap-2 overflow-x-auto p-1">
+                                        {['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b'].map((c) => (
+                                            <button
+                                                key={c}
+                                                type="button"
+                                                onClick={() => setColor(c)}
+                                                className={`w-8 h-8 rounded-full transition-all ${color === c ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-110'}`}
+                                                style={{ backgroundColor: c }}
+                                            />
+                                        ))}
+                                        <input
+                                            type="color"
+                                            value={color}
+                                            onChange={(e) => setColor(e.target.value)}
+                                            className="w-8 h-8 rounded-full overflow-hidden cursor-pointer border-0 p-0"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Schedule</label>
-                            <div className="space-y-3">
-                                <div className="flex gap-2">
-                                    {(['daily', 'weekly', 'interval'] as HabitFrequency[]).map((f) => (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Type</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(['checkbox', 'time', 'amount'] as HabitType[]).map((t) => (
                                         <button
-                                            key={f}
+                                            key={t}
                                             type="button"
-                                            onClick={() => setFrequency(f)}
-                                            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${frequency === f
+                                            onClick={() => setType(t)}
+                                            className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${type === t
                                                 ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
                                                 : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                                                 }`}
                                         >
-                                            {f}
+                                            {t}
                                         </button>
                                     ))}
                                 </div>
+                            </div>
 
-                                {frequency === 'weekly' && (
-                                    <div className="flex justify-between gap-1">
-                                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                            {type !== 'checkbox' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Daily Goal</label>
+                                        <input
+                                            type="number"
+                                            value={goal || ''}
+                                            onChange={(e) => setGoal(Number(e.target.value))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            placeholder="e.g., 30"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
+                                        <input
+                                            type="text"
+                                            value={unit}
+                                            onChange={(e) => setUnit(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            placeholder={type === 'time' ? 'mins' : 'pages'}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Schedule</label>
+                                <div className="space-y-3">
+                                    <div className="flex gap-2">
+                                        {(['daily', 'weekly', 'interval'] as HabitFrequency[]).map((f) => (
                                             <button
-                                                key={i}
+                                                key={f}
                                                 type="button"
-                                                onClick={() => {
-                                                    if (daysOfWeek.includes(i)) {
-                                                        setDaysOfWeek(daysOfWeek.filter(d => d !== i));
-                                                    } else {
-                                                        setDaysOfWeek([...daysOfWeek, i]);
-                                                    }
-                                                }}
-                                                className={`w-8 h-8 rounded-full text-xs font-bold transition-colors ${daysOfWeek.includes(i)
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                onClick={() => setFrequency(f)}
+                                                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${frequency === f
+                                                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
+                                                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                                                     }`}
                                             >
-                                                {day}
+                                                {f}
                                             </button>
                                         ))}
                                     </div>
-                                )}
 
-                                {frequency === 'interval' && (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-gray-600">Every</span>
+                                    {frequency === 'weekly' && (
+                                        <div className="flex justify-between gap-1">
+                                            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (daysOfWeek.includes(i)) {
+                                                            setDaysOfWeek(daysOfWeek.filter(d => d !== i));
+                                                        } else {
+                                                            setDaysOfWeek([...daysOfWeek, i]);
+                                                        }
+                                                    }}
+                                                    className={`w-8 h-8 rounded-full text-xs font-bold transition-colors ${daysOfWeek.includes(i)
+                                                        ? 'bg-blue-600 text-white'
+                                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                                        }`}
+                                                >
+                                                    {day}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {frequency === 'interval' && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-600">Every</span>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={interval}
+                                                onChange={(e) => setInterval(Number(e.target.value))}
+                                                className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center"
+                                            />
+                                            <span className="text-sm text-gray-600">days</span>
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">End Date (Optional)</label>
                                         <input
-                                            type="number"
-                                            min="1"
-                                            value={interval}
-                                            onChange={(e) => setInterval(Number(e.target.value))}
-                                            className="w-16 px-2 py-1 border border-gray-300 rounded-md text-center"
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                         />
-                                        <span className="text-sm text-gray-600">days</span>
                                     </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-500 mb-1">End Date (Optional)</label>
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                    />
                                 </div>
                             </div>
-                        </div>
 
-                    </form>
+                        </form>
+                    )}
                 </div>
 
                 <div className="p-6 border-t border-gray-100 dark:border-gray-700 shrink-0 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl">

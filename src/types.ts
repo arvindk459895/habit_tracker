@@ -5,6 +5,7 @@ export interface Habit {
     id: string;
     name: string;
     emoji: string;
+    icon?: string;
     type: HabitType;
     goal?: number; // For time/amount types
     unit?: string; // e.g., 'mins', 'ml', 'pages'
