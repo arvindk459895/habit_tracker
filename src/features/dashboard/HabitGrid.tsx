@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHabitStore } from '../../store/habitStore';
-import { getDaysInMonth, formatDate, formatDayName, formatDayNumber, isDateToday } from '../../utils/dateUtils';
+import { getDaysInMonth, formatDate, formatDayName, formatDayNumber, isDateToday, formatMonthYear } from '../../utils/dateUtils';
 import { Check, Plus, Trash2, Flame, Archive } from 'lucide-react';
 import { clsx } from 'clsx';
 import { HabitModal } from './HabitModal';
@@ -88,7 +88,10 @@ export const HabitGrid: React.FC = () => {
 
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Habit Tracker</h1>
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Habit Tracker</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{formatMonthYear(currentDate)}</p>
+                        </div>
 
                         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                             <button
@@ -167,7 +170,7 @@ export const HabitGrid: React.FC = () => {
                                                         <Flame size={12} fill="currentColor" />
                                                         {calculateStreak(logs, habit.id)}
                                                     </div>
-                                                    <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
+                                                    <div className="hidden sm:block sm:w-24 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
                                                         <div
                                                             className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-500"
                                                             style={{ width: `${habit.strength}%` }}
