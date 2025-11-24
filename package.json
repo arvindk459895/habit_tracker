@@ -12,6 +12,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@types/uuid": "^10.0.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

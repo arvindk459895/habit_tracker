@@ -16,14 +16,18 @@ import { AnalyticsStats } from '../analytics/AnalyticsStats';
 import { SmartInsightsWidget } from '../insights/SmartInsightsWidget';
 import { AnalyticsDashboard } from '../analytics/AnalyticsDashboard';
 import { useActivityStore } from '../../store/useActivityStore';
+import { AICoachWidget } from '../ai-coach/AICoachWidget';
+import { MagicHabitModal } from '../ai-coach/MagicHabitModal';
 
 export const HabitGrid: React.FC = () => {
     const { habits, logs, dayNotes, toggleHabit, deleteHabit, addHabit, logHabitValue, setDayNote, skipHabit, updateHabit, isLoading } = useHabitStore();
     const [currentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [logModalState, setLogModalState] = useState<{ isOpen: boolean; habit?: Habit; date?: string }>({ isOpen: false });
+    const [logModalState, setLogModalState] = useState<{ isOpen: boolean; habit?: Habit; date?: string }>({ isOpen: false });
     const [noteModalState, setNoteModalState] = useState<{ isOpen: boolean; date?: string }>({ isOpen: false });
     const [vacationModalState, setVacationModalState] = useState<{ isOpen: boolean; habitId: string | null }>({ isOpen: false, habitId: null });
+    const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
 
     const days = getDaysInMonth(currentDate);
     const [showArchived, setShowArchived] = useState(false);
@@ -79,6 +83,7 @@ export const HabitGrid: React.FC = () => {
             <div className="max-w-[1400px] mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                     <div className="lg:col-span-2 flex flex-col gap-6">
+                        <AICoachWidget />
                         <EarnedBadgesWidget />
                         <SmartInsightsWidget />
                         <AnalyticsStats />
@@ -107,6 +112,13 @@ export const HabitGrid: React.FC = () => {
                             >
                                 <Archive size={18} />
                                 <span className="hidden sm:inline">{showArchived ? 'Hide Archived' : 'Archived'}</span>
+                            </button>
+                            <button
+                                onClick={() => setIsMagicModalOpen(true)}
+                                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all text-sm shadow-sm"
+                            >
+                                <Snowflake size={18} className="text-yellow-300" />
+                                <span className="hidden sm:inline">Magic Add</span>
                             </button>
                             <button
                                 onClick={() => setIsModalOpen(true)}
@@ -262,6 +274,13 @@ export const HabitGrid: React.FC = () => {
                     <HabitModal
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
+                        onSave={handleSaveHabit}
+                    />
+                )}
+                {isMagicModalOpen && (
+                    <MagicHabitModal
+                        isOpen={isMagicModalOpen}
+                        onClose={() => setIsMagicModalOpen(false)}
                         onSave={handleSaveHabit}
                     />
                 )}
