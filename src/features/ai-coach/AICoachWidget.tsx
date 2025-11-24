@@ -46,20 +46,7 @@ export const AICoachWidget: React.FC = () => {
     }, []);
 
     if (!aiService.isConfigured()) {
-        return (
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
-                <div className="flex items-center gap-3 mb-2">
-                    <Sparkles className="text-yellow-300" />
-                    <h3 className="font-bold text-lg">AI Habit Coach</h3>
-                </div>
-                <p className="text-indigo-100 text-sm mb-3">
-                    Unlock personalized coaching and insights with Gemini AI.
-                </p>
-                <div className="bg-white/10 rounded p-2 text-xs font-mono">
-                    Add VITE_GEMINI_API_KEY to .env
-                </div>
-            </div>
-        );
+        return null;
     }
 
     return (
