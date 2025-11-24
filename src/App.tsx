@@ -7,12 +7,15 @@ import { useAuthStore } from './store/authStore';
 import { LoginPage } from './features/auth/LoginPage';
 import { FeedbackModal } from './features/feedback/FeedbackModal';
 import { SocialModal } from './features/social/SocialModal';
+import { ReviewsPage } from './features/reviews/ReviewsPage';
+import { AdvancedAnalytics } from './features/analytics/AdvancedAnalytics';
 import { useActivityStore } from './store/useActivityStore';
 import { fetchUserMetadata } from './services/userInfoService';
 
 function App() {
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [isSocialOpen, setIsSocialOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState<'dashboard' | 'reviews' | 'analytics'>('dashboard');
     const { theme, toggleTheme } = useTheme();
     const { user, loading, logout } = useAuthStore();
     const { logActivity } = useActivityStore();
@@ -84,29 +87,14 @@ function App() {
                         <button
                             onClick={logout}
                             className="p-2 rounded-lg hover:bg-red-50 text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
-                            title="Sign Out"
-                        >
-                            <LogOut size={20} />
-                        </button>
+                        />
+
+                        <SocialModal
+                            isOpen={isSocialOpen}
+                            onClose={() => setIsSocialOpen(false)}
+                        />
                     </div>
-                </div>
-            </nav>
-
-            <main>
-                <HabitGrid />
-            </main>
-
-            <FeedbackModal
-                isOpen={isFeedbackOpen}
-                onClose={() => setIsFeedbackOpen(false)}
-            />
-
-            <SocialModal
-                isOpen={isSocialOpen}
-                onClose={() => setIsSocialOpen(false)}
-            />
-        </div>
-    );
+                    );
 }
 
-export default App;
+                    export default App;
