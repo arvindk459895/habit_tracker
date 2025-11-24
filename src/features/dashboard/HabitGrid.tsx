@@ -168,7 +168,7 @@ export const HabitGrid: React.FC = () => {
                                                     <div className="font-medium text-gray-700 dark:text-gray-200">{habit.name}</div>
                                                     <div className="flex items-center gap-1 text-xs text-orange-500 font-medium">
                                                         <Flame size={12} fill="currentColor" />
-                                                        {calculateStreak(logs, habit.id)}
+                                                        {calculateStreak(logs, habit.id, new Date(), habit.frozenDates)}
                                                     </div>
                                                     <div className="hidden sm:block sm:w-24 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
                                                         <div

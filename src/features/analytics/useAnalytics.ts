@@ -13,8 +13,8 @@ export const useAnalytics = () => {
     let bestCurrentStreak = 0;
 
     habits.forEach(habit => {
-        const current = calculateStreak(logs, habit.id);
-        const best = calculateBestStreak(logs, habit.id);
+        const current = calculateStreak(logs, habit.id, new Date(), habit.frozenDates);
+        const best = calculateBestStreak(logs, habit.id, habit.frozenDates);
 
         bestCurrentStreak = Math.max(bestCurrentStreak, current);
         bestStreakAllTime = Math.max(bestStreakAllTime, best);
@@ -68,8 +68,8 @@ export const useAnalytics = () => {
 
     // Detailed Habit Stats
     const detailedHabitStats = habits.filter(h => !h.archived).map(habit => {
-        const currentStreak = calculateStreak(logs, habit.id);
-        const bestStreak = calculateBestStreak(logs, habit.id);
+        const currentStreak = calculateStreak(logs, habit.id, new Date(), habit.frozenDates);
+        const bestStreak = calculateBestStreak(logs, habit.id, habit.frozenDates);
 
         // Calculate interruptions (days where streak broke)
         // Simple logic: if yesterday was completed but today isn't (and it's not today yet), or gaps in history

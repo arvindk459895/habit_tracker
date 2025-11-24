@@ -18,6 +18,12 @@ export interface Habit {
     endDate?: string;
     strength: number; // 0-100
     category?: string;
+    frozenDates?: string[]; // Array of YYYY-MM-DD dates when streak is frozen
+    vacationMode?: {
+        enabled: boolean;
+        startDate: string;
+        endDate: string;
+    };
 }
 
 export interface HabitLog {
