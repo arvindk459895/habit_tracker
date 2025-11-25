@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { HashRouter as Router } from 'react-router-dom';
 import { HabitGrid } from './features/dashboard/HabitGrid';
 import { DataControls } from './features/settings/DataControls';
 import { Moon, Sun, LogOut, MessageSquare, Users } from 'lucide-react';
@@ -43,7 +43,7 @@ function App() {
     }
 
     return (
-        <Router basename="/habit_tracker">
+        <Router>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
                 <OfflineIndicator />
                 <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between sticky top-0 z-30">
