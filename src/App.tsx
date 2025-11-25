@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { HabitGrid } from './features/dashboard/HabitGrid';
 import { DataControls } from './features/settings/DataControls';
 import { Moon, Sun, LogOut, MessageSquare, Users } from 'lucide-react';
