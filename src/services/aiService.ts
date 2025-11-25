@@ -16,7 +16,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
             // Prepare context data
             const activeHabits = habits.filter(h => !h.archived).map(h => h.name).join(', ');
@@ -57,7 +57,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return [];
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
             const habitNames = currentHabits.map(h => h.name).join(', ');
 
             const prompt = `
@@ -91,7 +91,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-latest" });
 
             const prompt = `Extract habit details from: "${text}"
 
