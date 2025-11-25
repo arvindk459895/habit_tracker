@@ -263,6 +263,21 @@ export const useHabitStore = create<HabitStore>()(
     )
 );
 
+// Helper to sanitize data for Firestore (remove undefined values)
+const sanitizeForFirestore = (obj: any): any => {
+    if (obj === null || obj === undefined) return null;
+    if (typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(sanitizeForFirestore);
+
+    const sanitized: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+            sanitized[key] = sanitizeForFirestore(value);
+        }
+    }
+    return sanitized;
+};
+
 // Helper to save to cloud
 const saveToCloud = async (partialState: Partial<HabitStore>) => {
     const user = auth.currentUser;
@@ -270,7 +285,8 @@ const saveToCloud = async (partialState: Partial<HabitStore>) => {
 
     try {
         const docRef = doc(db, 'users', user.uid);
-        await setDoc(docRef, partialState, { merge: true });
+        const sanitizedState = sanitizeForFirestore(partialState);
+        await setDoc(docRef, sanitizedState, { merge: true });
     } catch (error) {
         console.error("Error saving to cloud:", error);
     }

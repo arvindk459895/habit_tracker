@@ -102,36 +102,42 @@ Return ONLY valid JSON with these fields:
 {
   "name": "Short habit name",
   "frequency": "daily" or "weekly" or "interval",
+  "daysOfWeek": [0,1,2...], // Required if weekly. 0=Sun, 1=Mon.
   "description": "Brief description",
   "emoji": "Single emoji",
-  "color": "#hexcolor"
+  "color": "#hexcolor",
+  "type": "checkbox" or "value", // Default "checkbox". Use "value" ONLY if a specific quantity is tracked (e.g. "2 liters", "10 pages").
+  "unit": "unit name" // Only if type is "value"
 }
 
+Rules:
+1. If frequency is "weekly" but no specific days are mentioned (e.g. "3x a week"), arbitrarily select spread-out days (e.g. [1,3,5] for 3x).
+2. Default "type" is "checkbox". Only set to "value" if the user explicitly mentions a quantity to track.
+
 Examples:
-- "Meditation 10mins" → {"name":"Meditation","frequency":"daily","description":"10 minutes daily","emoji":"🧘","color":"#8b5cf6"}
-- "Gym 3x week" → {"name":"Gym Workout","frequency":"weekly","days OfWeek":[1,3,5],"emoji":"💪","color":"#ef4444"}
+- "Meditation 10mins" → {"name":"Meditation","frequency":"daily","type":"checkbox","description":"10 minutes daily","emoji":"🧘","color":"#8b5cf6"}
+- "Gym 3x week" → {"name":"Gym Workout","frequency":"weekly","daysOfWeek":[1,3,5],"type":"checkbox","emoji":"💪","color":"#ef4444"}
+- "Drink 2L water daily" → {"name":"Drink Water","frequency":"daily","type":"value","unit":"L","description":"2L daily target","emoji":"💧","color":"#3b82f6"}
 
 Return ONLY JSON, no explanations.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
-            let textResponse = response.text();
+            const textResponse = response.text();
 
             console.log('AI Response:', textResponse);
 
             // Clean response
-            textResponse = textResponse.trim();
-            textResponse = textResponse.replace(/```json\\s*/g, '');
-            textResponse = textResponse.replace(/```\\s*/g, '');
+            const firstBrace = textResponse.indexOf('{');
+            const lastBrace = textResponse.lastIndexOf('}');
 
-            // Extract JSON object
-            const jsonMatch = textResponse.match(/\\{[\\s\\S]*\\}/);
-            if (!jsonMatch) {
-                console.error('No JSON found in response');
+            if (firstBrace === -1 || lastBrace === -1) {
+                console.error('No JSON found in response:', textResponse);
                 return null;
             }
 
-            const parsed = JSON.parse(jsonMatch[0]);
+            const jsonStr = textResponse.substring(firstBrace, lastBrace + 1);
+            const parsed = JSON.parse(jsonStr);
 
             // Return formatted habit data
             return {
@@ -139,6 +145,8 @@ Return ONLY JSON, no explanations.`;
                 frequency: parsed.frequency || 'daily',
                 daysOfWeek: parsed.daysOfWeek,
                 interval: parsed.interval,
+                type: parsed.type || 'checkbox',
+                unit: parsed.unit,
                 icon: parsed.emoji || '✅',
                 color: parsed.color || '#3b82f6'
             };

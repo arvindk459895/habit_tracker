@@ -105,7 +105,7 @@ export const generateInsights = (habits: Habit[], logs: Record<string, HabitLog>
             // Simplified: Assuming daily for now or checking if it exists in logs as skipped/failed
             // Ideally we check habit.daysOfWeek if frequency is weekly
             let isScheduled = true;
-            if (habit.frequency === 'weekly' && !habit.daysOfWeek.includes(day)) isScheduled = false;
+            if (habit.frequency === 'weekly' && !(habit.daysOfWeek || []).includes(day)) isScheduled = false;
 
             if (isScheduled) {
                 if (!logs[key]?.completed) {

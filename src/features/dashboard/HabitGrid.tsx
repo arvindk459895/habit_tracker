@@ -59,7 +59,7 @@ export const HabitGrid: React.FC = () => {
         if (habit.endDate && new Date(habit.endDate) < date) return false;
         if (habit.frequency === 'daily') return true;
         if (habit.frequency === 'weekly') {
-            return habit.daysOfWeek.includes(date.getDay());
+            return (habit.daysOfWeek || []).includes(date.getDay());
         }
         if (habit.frequency === 'interval') {
             const start = new Date(habit.createdAt);

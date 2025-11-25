@@ -14,7 +14,7 @@ export const syncLogToFirestore = async (log: ActivityLog) => {
             syncedAt: Date.now()
         };
 
-        await addDoc(collection(db, 'activity_logs'), logEntry);
+        await addDoc(collection(db, 'logs'), logEntry);
     } catch (error) {
         console.error("Error syncing log to Firestore:", error);
     }

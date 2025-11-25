@@ -64,7 +64,7 @@ export const ReviewsPage: React.FC = () => {
             const key = `${habit.id}-${dateStr}`;
             const log = logs[key];
 
-            if (habit.frequency === 'daily' || (habit.frequency === 'weekly' && habit.daysOfWeek.includes(day.getDay()))) {
+            if (habit.frequency === 'daily' || (habit.frequency === 'weekly' && (habit.daysOfWeek || []).includes(day.getDay()))) {
                 habitPerformance[habit.id].total++;
                 dayTotal++;
                 stats.totalPossible++;

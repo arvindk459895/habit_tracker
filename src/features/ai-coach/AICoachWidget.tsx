@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Lightbulb, TrendingUp, RefreshCw } from 'lucide-react';
 import { aiService } from '../../services/aiService';
 import { useHabitStore } from '../../store/habitStore';
@@ -38,12 +38,12 @@ export const AICoachWidget: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        // Initial fetch if configured
-        if (aiService.isConfigured() && !data) {
-            fetchInsights();
-        }
-    }, []);
+    // Removed auto-fetch useEffect to save costs
+    // useEffect(() => {
+    //     if (aiService.isConfigured() && !data) {
+    //         fetchInsights();
+    //     }
+    // }, []);
 
     if (!aiService.isConfigured()) {
         return null;
@@ -64,13 +64,16 @@ export const AICoachWidget: React.FC = () => {
                         <p className="text-indigo-100 text-xs">Powered by Gemini</p>
                     </div>
                 </div>
-                <button
-                    onClick={fetchInsights}
-                    disabled={loading}
-                    className={`p-2 hover:bg-white/20 rounded-full transition-colors ${loading ? 'animate-spin' : ''}`}
-                >
-                    <RefreshCw size={16} />
-                </button>
+                {data && (
+                    <button
+                        onClick={fetchInsights}
+                        disabled={loading}
+                        className={`p-2 hover:bg-white/20 rounded-full transition-colors ${loading ? 'animate-spin' : ''}`}
+                        title="Refresh Insights"
+                    >
+                        <RefreshCw size={16} />
+                    </button>
+                )}
             </div>
 
             {loading ? (
@@ -119,8 +122,17 @@ export const AICoachWidget: React.FC = () => {
                     </div>
                 </div>
             ) : (
-                <div className="text-indigo-100 text-sm">
-                    Ready to analyze your habits! Click refresh to start.
+                <div className="flex flex-col items-center justify-center py-4 text-center">
+                    <p className="text-indigo-100 text-sm mb-4">
+                        Get personalized insights and motivation based on your recent activity.
+                    </p>
+                    <button
+                        onClick={fetchInsights}
+                        className="px-4 py-2 bg-white text-indigo-600 rounded-lg font-medium text-sm hover:bg-indigo-50 transition-colors shadow-sm flex items-center gap-2"
+                    >
+                        <Sparkles size={16} />
+                        Get Monthly Summary
+                    </button>
                 </div>
             )}
         </div>

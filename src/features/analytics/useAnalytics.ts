@@ -89,7 +89,7 @@ export const useAnalytics = () => {
             } else {
                 // Check if it was a scheduled day
                 const dayOfWeek = parseInt(format(d, 'i')) % 7; // 0-6
-                if (habit.daysOfWeek.includes(dayOfWeek)) {
+                if ((habit.daysOfWeek || []).includes(dayOfWeek)) {
                     missedDays30d++;
                 }
             }
