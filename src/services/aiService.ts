@@ -16,13 +16,13 @@ export const aiService = {
         if (!aiService.isConfigured()) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
             // Prepare context data
             const activeHabits = habits.filter(h => !h.archived).map(h => h.name).join(', ');
             const recentLogs = Object.values(logs).slice(-50).map(l =>
                 `${l.habitId} was ${l.status} on ${l.date}`
-            ).join('\n');
+            ).join('\\n');
 
             const prompt = `
                 You are an encouraging and analytical Habit Coach.
@@ -57,7 +57,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return [];
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const habitNames = currentHabits.map(h => h.name).join(', ');
 
             const prompt = `
@@ -85,34 +85,62 @@ export const aiService = {
 
     // 4. Natural Language Habit Creation
     parseHabitFromText: async (text: string): Promise<Partial<Habit> | null> => {
+        console.log('===== MAGIC ADD CALLED =====', text);
+        console.log('API Configured:', aiService.isConfigured());
+
         if (!aiService.isConfigured()) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-            const prompt = `
-                Extract habit details from this text: "${text}"
-                
-                Return a JSON object with:
-                - name: Short, clear habit name
-                - frequency: "daily", "weekly", or "interval"
-                - daysOfWeek: Array of numbers 0-6 (0=Sun) if weekly
-                - interval: number if interval
-                - description: Optional description
-                - icon: A single emoji character that best fits the habit
-                - color: A hex color code that fits the habit vibe
-                
-                If the text is not a habit request, return null.
-                Format: JSON only.
-            `;
+            const prompt = `Extract habit details from: "${text}"
+
+Return ONLY valid JSON with these fields:
+{
+  "name": "Short habit name",
+  "frequency": "daily" or "weekly" or "interval",
+  "description": "Brief description",
+  "emoji": "Single emoji",
+  "color": "#hexcolor"
+}
+
+Examples:
+- "Meditation 10mins" → {"name":"Meditation","frequency":"daily","description":"10 minutes daily","emoji":"🧘","color":"#8b5cf6"}
+- "Gym 3x week" → {"name":"Gym Workout","frequency":"weekly","days OfWeek":[1,3,5],"emoji":"💪","color":"#ef4444"}
+
+Return ONLY JSON, no explanations.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
-            const textResponse = response.text();
-            const jsonStr = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(jsonStr);
+            let textResponse = response.text();
+
+            console.log('AI Response:', textResponse);
+
+            // Clean response
+            textResponse = textResponse.trim();
+            textResponse = textResponse.replace(/```json\\s*/g, '');
+            textResponse = textResponse.replace(/```\\s*/g, '');
+
+            // Extract JSON object
+            const jsonMatch = textResponse.match(/\\{[\\s\\S]*\\}/);
+            if (!jsonMatch) {
+                console.error('No JSON found in response');
+                return null;
+            }
+
+            const parsed = JSON.parse(jsonMatch[0]);
+
+            // Return formatted habit data
+            return {
+                name: parsed.name,
+                frequency: parsed.frequency || 'daily',
+                daysOfWeek: parsed.daysOfWeek,
+                interval: parsed.interval,
+                icon: parsed.emoji || '✅',
+                color: parsed.color || '#3b82f6'
+            };
         } catch (error) {
-            console.error("Error parsing habit:", error);
+            console.error("Magic Add Error:", error);
             return null;
         }
     }

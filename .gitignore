@@ -108,7 +108,7 @@ dist
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-
+.INSTAGRAM_MARKETING_PLAN.md
 # yarn v2
 .yarn/cache
 .yarn/unplugged

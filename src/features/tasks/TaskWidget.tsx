@@ -113,11 +113,11 @@ export const TaskWidget: React.FC = () => {
                 </button>
             </form>
 
-            <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                {/* Today's Tasks */}
+            <div className="space-y-3">
+                {/* Today's Tasks - Scrollable */}
                 <div>
                     <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase mb-2">Today</h3>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                         <AnimatePresence mode='popLayout'>
                             {todaysTasks.map(task => (
                                 <motion.div
