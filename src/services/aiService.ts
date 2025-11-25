@@ -8,7 +8,10 @@ const genAI = new GoogleGenerativeAI(API_KEY || '');
 export const aiService = {
     // Check if API key is configured
     isConfigured: () => {
-        return !!API_KEY && API_KEY !== 'YOUR_API_KEY_HERE';
+        const key = API_KEY;
+        console.log('Debug - Raw API Key:', key ? key.substring(0, 5) + '...' : 'undefined/empty');
+        console.log('Debug - Is Valid Key:', !!key && key !== 'YOUR_API_KEY_HERE');
+        return !!key && key !== 'YOUR_API_KEY_HERE';
     },
 
     // 1. AI Habit Coach & 2. Intelligent Insights
@@ -16,7 +19,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
             // Prepare context data
             const activeHabits = habits.filter(h => !h.archived).map(h => h.name).join(', ');
@@ -57,7 +60,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return [];
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             const habitNames = currentHabits.map(h => h.name).join(', ');
 
             const prompt = `
@@ -91,7 +94,7 @@ export const aiService = {
         if (!aiService.isConfigured()) return null;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
             const prompt = `Extract habit details from: "${text}"
 
