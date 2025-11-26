@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHabitStore } from '../../store/habitStore';
 import { getDaysInMonth, formatDate, formatDayName, formatDayNumber, isDateToday, formatMonthYear } from '../../utils/dateUtils';
-import { Check, Plus, Trash2, Flame, Archive, Snowflake } from 'lucide-react';
+import { Check, Plus, Trash2, Flame, Archive, Snowflake, ChevronLeft, ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 import { HabitModal } from './HabitModal';
 import { LogModal } from './LogModal';
@@ -21,18 +21,62 @@ import { MagicHabitModal } from '../ai-coach/MagicHabitModal';
 
 export const HabitGrid: React.FC = () => {
     const { habits, logs, dayNotes, toggleHabit, deleteHabit, addHabit, logHabitValue, setDayNote, skipHabit, updateHabit, isLoading } = useHabitStore();
-    const [currentDate] = useState(new Date());
+    const [currentDate, setCurrentDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
     const [logModalState, setLogModalState] = useState<{ isOpen: boolean; habit?: Habit; date?: string }>({ isOpen: false });
     const [noteModalState, setNoteModalState] = useState<{ isOpen: boolean; date?: string }>({ isOpen: false });
     const [vacationModalState, setVacationModalState] = useState<{ isOpen: boolean; habitId: string | null }>({ isOpen: false, habitId: null });
-    const [isMagicModalOpen, setIsMagicModalOpen] = useState(false);
 
     const days = getDaysInMonth(currentDate);
     const [showArchived, setShowArchived] = useState(false);
-
-
     const { logActivity } = useActivityStore();
+    const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+    // Auto-scroll to today
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            const container = scrollContainerRef.current;
+            const todayEl = document.getElementById('today-column');
+
+            if (container && todayEl) {
+                const containerRect = container.getBoundingClientRect();
+                const todayRect = todayEl.getBoundingClientRect();
+
+                // Get the sticky column width (first th)
+                const stickyCol = container.querySelector('th.sticky');
+                const stickyWidth = stickyCol ? stickyCol.getBoundingClientRect().width : 0;
+
+                // Calculate the scroll position
+                // We want todayEl.left to be at (container.left + stickyWidth)
+                // Current position is todayRect.left
+                // The difference is how much we need to scroll relative to current scroll
+                const offset = todayRect.left - (containerRect.left + stickyWidth);
+
+                container.scrollBy({
+                    left: offset,
+                    behavior: 'smooth'
+                });
+            }
+        }, 500); // Small delay to ensure rendering
+        return () => clearTimeout(timer);
+    }, [currentDate]);
+
+    const handlePrevMonth = () => {
+        setCurrentDate(prev => {
+            const newDate = new Date(prev);
+            newDate.setMonth(prev.getMonth() - 1);
+            return newDate;
+        });
+    };
+
+    const handleNextMonth = () => {
+        setCurrentDate(prev => {
+            const newDate = new Date(prev);
+            newDate.setMonth(prev.getMonth() + 1);
+            return newDate;
+        });
+    };
 
     const handleSaveHabit = (habitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
         addHabit(habitData);
@@ -96,7 +140,23 @@ export const HabitGrid: React.FC = () => {
                     <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Habit Tracker</h1>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{formatMonthYear(currentDate)}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <button
+                                    onClick={handlePrevMonth}
+                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                >
+                                    <ChevronLeft size={20} className="text-gray-500 dark:text-gray-400" />
+                                </button>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium min-w-[100px] text-center">
+                                    {formatMonthYear(currentDate)}
+                                </p>
+                                <button
+                                    onClick={handleNextMonth}
+                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                                >
+                                    <ChevronRight size={20} className="text-gray-500 dark:text-gray-400" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -130,7 +190,7 @@ export const HabitGrid: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto custom-scrollbar">
+                    <div ref={scrollContainerRef} className="overflow-x-auto custom-scrollbar">
                         <table className="w-full border-collapse">
                             <thead>
                                 <tr>
@@ -142,13 +202,16 @@ export const HabitGrid: React.FC = () => {
                                         return (
                                             <th
                                                 key={dateStr}
+                                                id={isToday ? "today-column" : undefined}
                                                 className={clsx(
                                                     "p-2 text-center min-w-[40px] border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors relative",
                                                     isToday && "bg-blue-50 dark:bg-blue-900/20"
                                                 )}
                                                 onClick={() => setNoteModalState({ isOpen: true, date: dateStr })}
                                             >
-                                                <div className="text-xs text-gray-500 dark:text-gray-400">{formatDayName(day)}</div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {isToday ? <span className="text-blue-600 dark:text-blue-400 font-bold">Today</span> : formatDayName(day)}
+                                                </div>
                                                 <div className={clsx("text-sm font-medium", isToday ? "text-blue-600 dark:text-blue-400" : "text-gray-700 dark:text-gray-200")}>
                                                     {formatDayNumber(day)}
                                                 </div>

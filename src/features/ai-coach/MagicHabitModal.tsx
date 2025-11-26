@@ -38,6 +38,28 @@ export const MagicHabitModal: React.FC<Props> = ({ isOpen, onClose, onSave }) =>
         }
     };
 
+    const handleDirectSubmit = async (text: string) => {
+        if (!text.trim()) return;
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const habitData = await aiService.parseHabitFromText(text);
+            if (habitData) {
+                onSave(habitData);
+                setInput('');
+                onClose();
+            } else {
+                setError("Couldn't understand that. Try being more specific!");
+            }
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -94,7 +116,10 @@ export const MagicHabitModal: React.FC<Props> = ({ isOpen, onClose, onSave }) =>
                                 <button
                                     key={suggestion}
                                     type="button"
-                                    onClick={() => setInput(suggestion)}
+                                    onClick={() => {
+                                        setInput(suggestion);
+                                        handleDirectSubmit(suggestion);
+                                    }}
                                     className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                                 >
                                     {suggestion}
@@ -103,7 +128,7 @@ export const MagicHabitModal: React.FC<Props> = ({ isOpen, onClose, onSave }) =>
                         </div>
                     </form>
                 </div>
-            </motion.div>
-        </div>
+            </motion.div >
+        </div >
     );
 };
